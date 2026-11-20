@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>My Launcher</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; user-select: none; }
+        body { background: #0f1115; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .header { padding: 40px 20px 20px; text-align: center; }
+        #clock { font-size: 48px; font-weight: 300; letter-spacing: 2px; }
+        #date { font-size: 14px; color: #9aa0a6; margin-top: 5px; }
+        .search-box { margin: 20px; }
+        #search { width: 100%; padding: 12px 18px; border-radius: 25px; border: none; background: #1e222a; color: #fff; font-size: 16px; outline: none; }
+        .app-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 10px; padding: 10px 15px 40px; align-content: start; }
+        .app-item { display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; }
+        .app-item:active { transform: scale(0.92); transition: 0.1s; }
+        .app-icon { width: 52px; height: 52px; border-radius: 14px; object-fit: cover; margin-bottom: 6px; background: #1e222a; }
+        .app-name { font-size: 12px; color: #e8eaed; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 72px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div id="clock">12:00</div>
+        <div id="date">Saturday, Nov 21</div>
+    </div>
+    <div class="search-box">
+        <input type="text" id="search" placeholder="Search apps..." onkeyup="filterApps()">
+    </div>
+    <div class="app-grid" id="appGrid"></div>
+    <script>
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            let mins = now.getMinutes().toString().padStart(2, '0');
+            hours = hours % 12 || 12;
+            document.getElementById('clock').innerText = `${hours}:${mins}`;
+            const options = { weekday: 'long', month: 'short', day: 'numeric' };
+            document.getElementById('date').innerText = now.toLocaleDateString('en-US', options);
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        let allApps = [];
+        function loadApps() {
+            if (window.AndroidLauncher) {
+                const rawData = window.AndroidLauncher.getInstalledApps();
+                allApps = JSON.parse(rawData);
+                allApps.sort((a, b) => a.name.localeCompare(b.name));
+                renderApps(allApps);
+            }
+        }
+        function renderApps(apps) {
+            const grid = document.getElementById('appGrid');
+            grid.innerHTML = '';
+            apps.forEach(app => {
+                const div = document.createElement('div');
+                div.className = 'app-item';
+                div.onclick = () => window.AndroidLauncher.launchApp(app.package);
+                div.innerHTML = `<img class="app-icon" src="data:image/png;base64,${app.icon}" /><span class="app-name">${app.name}</span>`;
+                grid.appendChild(div);
+            });
+        }
+        function filterApps() {
+            const query = document.getElementById('search').value.toLowerCase();
+            const filtered = allApps.filter(app => app.name.toLowerCase().includes(query));
+            renderApps(filtered);
+        }
+        window.onload = loadApps;
+    </script>
+</body>
+</html>
