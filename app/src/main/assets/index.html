@@ -17,6 +17,15 @@
         .app-item:active { transform: scale(0.92); transition: 0.1s; }
         .app-icon { width: 52px; height: 52px; border-radius: 14px; object-fit: cover; margin-bottom: 6px; background: #1e222a; }
         .app-name { font-size: 12px; color: #e8eaed; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 72px; }
+
+        /* Icon Edit Modal */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); align-items: center; justify-content: center; z-index: 100; }
+        .modal-box { background: #1e222a; padding: 20px; border-radius: 16px; width: 80%; max-width: 300px; text-align: center; }
+        .modal-title { font-size: 16px; margin-bottom: 15px; font-weight: bold; }
+        .modal-btn { width: 100%; padding: 12px; margin: 6px 0; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; font-weight: bold; }
+        .btn-change { background: #3b82f6; color: #fff; }
+        .btn-reset { background: #374151; color: #fff; }
+        .btn-cancel { background: transparent; color: #9ca3af; }
     </style>
 </head>
 <body>
@@ -28,6 +37,17 @@
         <input type="text" id="search" placeholder="Search apps..." onkeyup="filterApps()">
     </div>
     <div class="app-grid" id="appGrid"></div>
+
+    <!-- Custom Icon Modal -->
+    <div class="modal" id="iconModal">
+        <div class="modal-box">
+            <div class="modal-title" id="modalAppName">App Options</div>
+            <button class="modal-btn btn-change" onclick="triggerIconPick()">Change Icon (Gallery)</button>
+            <button class="modal-btn btn-reset" onclick="resetIcon()">Reset Default Icon</button>
+            <button class="modal-btn btn-cancel" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+
     <script>
         function updateClock() {
             const now = new Date();
@@ -42,6 +62,9 @@
         updateClock();
 
         let allApps = [];
+        let selectedPkg = '';
+        let customIcons = JSON.parse(localStorage.getItem('custom_icons') || '{}');
+
         function loadApps() {
             if (window.AndroidLauncher) {
                 const rawData = window.AndroidLauncher.getInstalledApps();
@@ -50,22 +73,66 @@
                 renderApps(allApps);
             }
         }
+
         function renderApps(apps) {
             const grid = document.getElementById('appGrid');
             grid.innerHTML = '';
             apps.forEach(app => {
                 const div = document.createElement('div');
                 div.className = 'app-item';
+                
+                // Long press detection
+                let pressTimer;
+                div.ontouchstart = () => {
+                    pressTimer = setTimeout(() => openModal(app.package, app.name), 600);
+                };
+                div.ontouchend = () => clearTimeout(pressTimer);
+                div.ontouchmove = () => clearTimeout(pressTimer);
+
                 div.onclick = () => window.AndroidLauncher.launchApp(app.package);
-                div.innerHTML = `<img class="app-icon" src="data:image/png;base64,${app.icon}" /><span class="app-name">${app.name}</span>`;
+
+                const iconSrc = customIcons[app.package] || app.icon;
+                div.innerHTML = `<img class="app-icon" src="data:image/png;base64,${iconSrc}" /><span class="app-name">${app.name}</span>`;
                 grid.appendChild(div);
             });
         }
+
         function filterApps() {
             const query = document.getElementById('search').value.toLowerCase();
             const filtered = allApps.filter(app => app.name.toLowerCase().includes(query));
             renderApps(filtered);
         }
+
+        function openModal(pkg, name) {
+            selectedPkg = pkg;
+            document.getElementById('modalAppName').innerText = name;
+            document.getElementById('iconModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('iconModal').style.display = 'none';
+        }
+
+        function triggerIconPick() {
+            closeModal();
+            if (window.AndroidLauncher) {
+                window.AndroidLauncher.pickIconForApp(selectedPkg);
+            }
+        }
+
+        function saveCustomIcon(pkg, base64Data) {
+            customIcons[pkg] = base64Data;
+            localStorage.setItem('custom_icons', JSON.stringify(customIcons));
+            renderApps(allApps);
+        }
+
+        function resetIcon() {
+            delete customIcons[selectedPkg];
+            localStorage.setItem('custom_icons', JSON.stringify(customIcons));
+            closeModal();
+            renderApps(allApps);
+        }
+
         window.onload = loadApps;
     </script>
 </body>
