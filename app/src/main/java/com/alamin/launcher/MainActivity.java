@@ -1,15 +1,19 @@
 package com.alamin.launcher;
 
 import android.app.Activity;
+import android.app.ActivityOptions;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.BatteryManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Base64;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
@@ -29,6 +33,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         webView = new WebView(this);
+        webView.setBackgroundColor(Color.TRANSPARENT);
         setContentView(webView);
 
         WebSettings settings = webView.getSettings();
@@ -40,7 +45,16 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        if (webView != null) {
+            webView.evaluateJavascript("if(typeof onHomeResume === 'function') onHomeResume();", null);
+        }
+    }
+
+    @Override
     public void onBackPressed() {
+        webView.evaluateJavascript("handleBackPress()", null);
     }
 
     @Override
@@ -53,7 +67,7 @@ public class MainActivity extends Activity {
                     InputStream imageStream = getContentResolver().openInputStream(imageUri);
                     Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
                     if (selectedImage != null) {
-                        Bitmap resized = Bitmap.createScaledBitmap(selectedImage, 128, 128, true);
+                        Bitmap resized = Bitmap.createScaledBitmap(selectedImage, 144, 144, true);
                         ByteArrayOutputStream stream = new ByteArrayOutputStream();
                         resized.compress(Bitmap.CompressFormat.PNG, 90, stream);
                         String base64Icon = Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP);
@@ -98,7 +112,10 @@ public class MainActivity extends Activity {
         public void launchApp(String packageName) {
             Intent launchIntent = getPackageManager().getLaunchIntentForPackage(packageName);
             if (launchIntent != null) {
-                startActivity(launchIntent);
+                ActivityOptions options = ActivityOptions.makeCustomAnimation(
+                    MainActivity.this, android.R.anim.fade_in, android.R.anim.fade_out
+                );
+                startActivity(launchIntent, options.toBundle());
             }
         }
 
@@ -110,9 +127,29 @@ public class MainActivity extends Activity {
             startActivityForResult(intent, PICK_IMAGE);
         }
 
+        @JavascriptInterface
+        public void openAppInfo(String packageName) {
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.parse("package:" + packageName));
+            startActivity(intent);
+        }
+
+        @JavascriptInterface
+        public void uninstallApp(String packageName) {
+            Intent intent = new Intent(Intent.ACTION_DELETE);
+            intent.setData(Uri.parse("package:" + packageName));
+            startActivity(intent);
+        }
+
+        @JavascriptInterface
+        public int getBatteryLevel() {
+            BatteryManager bm = (BatteryManager) getSystemService(BATTERY_SERVICE);
+            return bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+        }
+
         private String drawableToBase64(Drawable drawable) {
-            int width = drawable.getIntrinsicWidth() > 0 ? drawable.getIntrinsicWidth() : 96;
-            int height = drawable.getIntrinsicHeight() > 0 ? drawable.getIntrinsicHeight() : 96;
+            int width = drawable.getIntrinsicWidth() > 0 ? drawable.getIntrinsicWidth() : 108;
+            int height = drawable.getIntrinsicHeight() > 0 ? drawable.getIntrinsicHeight() : 108;
             Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bitmap);
             drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
