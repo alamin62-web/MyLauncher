@@ -3,133 +3,404 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>My Launcher</title>
+    <title>XOS 16 Launcher</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; user-select: none; }
-        body { background: #0f1115; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .header { padding: 40px 20px 20px; text-align: center; }
-        #clock { font-size: 48px; font-weight: 300; letter-spacing: 2px; }
-        #date { font-size: 14px; color: #9aa0a6; margin-top: 5px; }
-        .search-box { margin: 20px; }
-        #search { width: 100%; padding: 12px 18px; border-radius: 25px; border: none; background: #1e222a; color: #fff; font-size: 16px; outline: none; }
-        .app-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 10px; padding: 10px 15px 40px; align-content: start; }
-        .app-item { display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; }
-        .app-item:active { transform: scale(0.92); transition: 0.1s; }
-        .app-icon { width: 52px; height: 52px; border-radius: 14px; object-fit: cover; margin-bottom: 6px; background: #1e222a; }
-        .app-name { font-size: 12px; color: #e8eaed; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 72px; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); align-items: center; justify-content: center; z-index: 100; }
-        .modal-box { background: #1e222a; padding: 20px; border-radius: 16px; width: 80%; max-width: 300px; text-align: center; }
-        .modal-title { font-size: 16px; margin-bottom: 15px; font-weight: bold; }
-        .modal-btn { width: 100%; padding: 12px; margin: 6px 0; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; font-weight: bold; }
-        .btn-change { background: #3b82f6; color: #fff; }
-        .btn-reset { background: #374151; color: #fff; }
-        .btn-cancel { background: transparent; color: #9ca3af; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { background: transparent; color: #fff; height: 100vh; width: 100vw; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease; }
+
+        /* Smooth Zoom Launch Animation */
+        body.launching { transform: scale(1.12); opacity: 0; }
+
+        /* Horizontal Pages Container */
+        .pages-wrapper { flex: 1; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; }
+        .pages-wrapper::-webkit-scrollbar { display: none; }
+        .page { min-width: 100vw; height: 100%; scroll-snap-align: start; padding: 36px 18px 10px; display: flex; flex-direction: column; }
+
+        /* Page 0: Zero Screen (My Services) */
+        .zero-screen { background: rgba(20, 22, 28, 0.72); backdrop-filter: blur(22px); }
+        .zero-search { background: rgba(255,255,255,0.12); border-radius: 24px; padding: 12px 18px; display: flex; align-items: center; color: #ccc; font-size: 15px; margin-bottom: 18px; }
+        .section-head { display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+        .xos-banner { background: linear-gradient(135deg, #e0f2fe 0%, #f3e8ff 50%, #dcfce7 100%); border-radius: 22px; padding: 22px; color: #111; height: 155px; position: relative; overflow: hidden; margin-bottom: 16px; display: flex; flex-direction: column; justify-content: space-between; }
+        .xos-banner h2 { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+        .xos-banner span { background: linear-gradient(90deg, #10b981, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .zero-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .z-card { background: rgba(35, 38, 46, 0.85); border-radius: 22px; padding: 18px; height: 145px; display: flex; flex-direction: column; justify-content: space-between; }
+        .z-card h3 { font-size: 30px; font-weight: 600; }
+        .z-card p { font-size: 12px; color: #9ca3af; }
+
+        /* Page 1: Main Home Screen Widgets */
+        .widgets-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px; }
+        .widget-wrap { display: flex; flex-direction: column; align-items: center; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .widget-wrap:active { transform: scale(0.94); }
+        .clock-widget { width: 100%; aspect-ratio: 1/1; background: rgba(24, 26, 30, 0.88); backdrop-filter: blur(12px); border-radius: 28px; border: 2px dashed rgba(255,255,255,0.22); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.35); }
+        .clock-date { font-size: 12px; color: #d1d5db; margin-bottom: 4px; }
+        .clock-time { font-size: 46px; font-weight: 800; letter-spacing: -1px; line-height: 1; font-variant-numeric: tabular-nums; }
+        .clock-weather { font-size: 12px; color: #9ca3af; margin-top: 8px; }
+
+        .xos-widget { width: 100%; aspect-ratio: 1/1; background: linear-gradient(145deg, #ffffff 0%, #e5e7eb 100%); border-radius: 28px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; color: #111; box-shadow: 0 10px 25px rgba(0,0,0,0.25); }
+        .xos-16-num { font-size: 64px; font-weight: 900; line-height: 0.95; background: linear-gradient(180deg, #2dd4bf 0%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .xos-sub b { font-size: 18px; letter-spacing: 1px; display: block; }
+        .xos-sub small { font-size: 11px; color: #4b5563; }
+        .widget-label { font-size: 12px; margin-top: 7px; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+
+        /* Page 2: Home App Grid (4x6) */
+        .home-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px 10px; align-content: start; margin-top: 6px; }
+
+        /* App Icon & Click Pop-Zoom Animation */
+        .app-item { display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .app-item:active { transform: scale(0.86); }
+        .app-icon { width: 56px; height: 56px; border-radius: 16px; object-fit: cover; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.25); transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), filter 0.2s; }
+        .app-name { font-size: 11.5px; margin-top: 6px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 74px; transition: opacity 0.15s; }
+
+        .app-item.opening { z-index: 99; }
+        .app-item.opening .app-icon { transform: scale(1.45); filter: brightness(1.15); box-shadow: 0 12px 28px rgba(0,0,0,0.5); }
+        .app-item.opening .app-name { opacity: 0; }
+
+        /* Page Dots & Glass Dock */
+        .bottom-area { padding: 6px 16px 20px; display: flex; flex-direction: column; align-items: center; }
+        .dots { display: flex; gap: 7px; margin-bottom: 14px; align-items: center; }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.4); transition: 0.2s; }
+        .dot.active { width: 8px; height: 8px; background: #fff; }
+        .dock { width: 100%; background: rgba(45, 48, 58, 0.55); backdrop-filter: blur(20px); border-radius: 30px; padding: 12px 16px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; border: 1px solid rgba(255,255,255,0.12); }
+        .dock .app-name { display: none; }
+
+        /* Full Screen App Drawer (Swipe Up) */
+        .drawer { position: fixed; inset: 0; background: rgba(22, 24, 30, 0.85); backdrop-filter: blur(28px); z-index: 50; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); padding-top: 38px; }
+        .drawer.open { transform: translateY(0); }
+        .drawer-tabs { display: flex; gap: 18px; padding: 0 18px 12px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .drawer-tabs::-webkit-scrollbar { display: none; }
+        .tab { font-size: 15px; color: #9ca3af; white-space: nowrap; padding-bottom: 6px; font-weight: 500; }
+        .tab.active { color: #fff; border-bottom: 2px solid #fff; font-weight: 600; }
+
+        .drawer-body { flex: 1; display: flex; overflow: hidden; position: relative; }
+        .drawer-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 8px; padding: 16px 24px 20px 16px; align-content: start; }
+        .alpha-bar { width: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 10px; color: #9ca3af; gap: 2px; padding-right: 4px; }
+        .alpha-bar span { cursor: pointer; padding: 1px 4px; }
+
+        .drawer-search-wrap { padding: 10px 18px 22px; }
+        .drawer-search { width: 100%; background: rgba(255,255,255,0.14); border: none; border-radius: 26px; padding: 13px 20px; color: #fff; font-size: 15px; outline: none; }
+        .drawer-search::placeholder { color: #d1d5db; }
+
+        /* XOS Style Long-Press Context Menu */
+        .context-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; }
+        .xos-menu { background: rgba(34, 36, 40, 0.94); backdrop-filter: blur(20px); border-radius: 22px; width: 82%; max-width: 310px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 15px 35px rgba(0,0,0,0.5); animation: popMenu 0.22s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes popMenu { from { transform: scale(0.84); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .menu-top-actions { display: grid; grid-template-columns: repeat(3, 1fr); padding: 16px 10px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center; }
+        .top-act { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; color: #e5e7eb; }
+        .top-act svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 1.8; }
+        .menu-list-item { padding: 15px 20px; display: flex; align-items: center; gap: 14px; font-size: 15px; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .menu-list-item:active { background: rgba(255,255,255,0.1); }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div id="clock">12:00</div>
-        <div id="date">Saturday, Nov 21</div>
-    </div>
-    <div class="search-box">
-        <input type="text" id="search" placeholder="Search apps..." onkeyup="filterApps()">
-    </div>
-    <div class="app-grid" id="appGrid"></div>
 
-    <div class="modal" id="iconModal">
-        <div class="modal-box">
-            <div class="modal-title" id="modalAppName">App Options</div>
-            <button class="modal-btn btn-change" onclick="triggerIconPick()">Change Icon (Gallery)</button>
-            <button class="modal-btn btn-reset" onclick="resetIcon()">Reset Default Icon</button>
-            <button class="modal-btn btn-cancel" onclick="closeModal()">Cancel</button>
+    <div class="pages-wrapper" id="pagesWrapper">
+        <div class="page zero-screen">
+            <div class="zero-search" onclick="openDrawer()">🔍 Search apps & services...</div>
+            <div class="section-head"><span>My Services</span><span>⊕</span></div>
+            <div class="xos-banner">
+                <h2>XOS <span>16</span></h2>
+                <p style="font-size:13px; color:#374151;">Personalized Smart Launcher</p>
+            </div>
+            <div class="zero-cards">
+                <div class="z-card">
+                    <h3 id="batText">52%</h3>
+                    <p>Battery Level</p>
+                </div>
+                <div class="z-card" onclick="openDrawer()">
+                    <h3 style="text-align:center;">+</h3>
+                    <p style="text-align:center;">All Apps</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="mainHomePage">
+            <div class="widgets-row">
+                <div class="widget-wrap">
+                    <div class="clock-widget">
+                        <div class="clock-date" id="homeDate">Sat, Nov 21</div>
+                        <div class="clock-time" id="homeClock">03:29</div>
+                        <div class="clock-weather">☁ 22°</div>
+                    </div>
+                    <span class="widget-label">Clock</span>
+                </div>
+                <div class="widget-wrap" onclick="openDrawer()">
+                    <div class="xos-widget">
+                        <div class="xos-16-num">16</div>
+                        <div class="xos-sub">
+                            <b>XOS</b>
+                            <small>Explore More</small>
+                        </div>
+                    </div>
+                    <span class="widget-label">AI Suggestions</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="page">
+            <div class="home-grid" id="secondPageGrid"></div>
+        </div>
+    </div>
+
+    <div class="bottom-area">
+        <div class="dots">
+            <div class="dot" id="dot0"></div>
+            <div class="dot active" id="dot1"></div>
+            <div class="dot" id="dot2"></div>
+        </div>
+        <div class="dock" id="dockBar"></div>
+    </div>
+
+    <div class="drawer" id="appDrawer">
+        <div class="drawer-tabs">
+            <div class="tab active" onclick="filterCategory('All', this)">All</div>
+            <div class="tab" onclick="filterCategory('Social', this)">Communication</div>
+            <div class="tab" onclick="filterCategory('Media', this)">Entertainment</div>
+            <div class="tab" onclick="filterCategory('Tools', this)">Tools</div>
+        </div>
+        <div class="drawer-body">
+            <div class="drawer-grid" id="drawerGrid"></div>
+            <div class="alpha-bar" id="alphaBar"></div>
+        </div>
+        <div class="drawer-search-wrap">
+            <input type="text" class="drawer-search" id="drawerSearch" placeholder="🔍 Search for apps" onkeyup="searchDrawerApps()">
+        </div>
+    </div>
+
+    <div class="context-overlay" id="contextOverlay" onclick="closeContextMenu(event)">
+        <div class="xos-menu" onclick="event.stopPropagation()">
+            <div class="menu-top-actions">
+                <div class="top-act" onclick="resetIcon()">
+                    <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    <span>Reset Icon</span>
+                </div>
+                <div class="top-act" onclick="uninstallSelectedApp()">
+                    <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    <span>Uninstall</span>
+                </div>
+                <div class="top-act" onclick="openSelectedAppInfo()">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                    <span>App info</span>
+                </div>
+            </div>
+            <div class="menu-list-item" onclick="triggerIconPick()">
+                <span>🖼️</span>
+                <span>Change App Icon (Gallery)</span>
+            </div>
+            <div class="menu-list-item" onclick="closeMenu()">
+                <span>✕</span>
+                <span style="color:#9ca3af;">Cancel</span>
+            </div>
         </div>
     </div>
 
     <script>
-        function updateClock() {
-            const now = new Date();
-            let hours = now.getHours();
-            let mins = now.getMinutes().toString().padStart(2, '0');
-            hours = hours % 12 || 12;
-            document.getElementById('clock').innerText = `${hours}:${mins}`;
-            const options = { weekday: 'long', month: 'short', day: 'numeric' };
-            document.getElementById('date').innerText = now.toLocaleDateString('en-US', options);
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-
         let allApps = [];
         let selectedPkg = '';
         let customIcons = JSON.parse(localStorage.getItem('custom_icons') || '{}');
 
-        function loadApps() {
+        const wrapper = document.getElementById('pagesWrapper');
+        window.addEventListener('load', () => {
+            wrapper.scrollLeft = window.innerWidth;
+            loadApps();
+            updateClock();
             if (window.AndroidLauncher) {
-                const rawData = window.AndroidLauncher.getInstalledApps();
-                allApps = JSON.parse(rawData);
-                allApps.sort((a, b) => a.name.localeCompare(b.name));
-                renderApps(allApps);
+                document.getElementById('batText').innerText = window.AndroidLauncher.getBatteryLevel() + '%';
             }
+        });
+
+        function onHomeResume() {
+            document.body.classList.remove('launching');
+            document.querySelectorAll('.app-item.opening').forEach(el => el.classList.remove('opening'));
         }
 
-        function renderApps(apps) {
-            const grid = document.getElementById('appGrid');
-            grid.innerHTML = '';
-            apps.forEach(app => {
-                const div = document.createElement('div');
-                div.className = 'app-item';
-                
-                let pressTimer;
-                div.ontouchstart = () => {
-                    pressTimer = setTimeout(() => openModal(app.package, app.name), 600);
-                };
-                div.ontouchend = () => clearTimeout(pressTimer);
-                div.ontouchmove = () => clearTimeout(pressTimer);
-
-                div.onclick = () => window.AndroidLauncher.launchApp(app.package);
-
-                const iconSrc = customIcons[app.package] || app.icon;
-                div.innerHTML = `<img class="app-icon" src="data:image/png;base64,${iconSrc}" /><span class="app-name">${app.name}</span>`;
-                grid.appendChild(div);
+        wrapper.addEventListener('scroll', () => {
+            const pageIndex = Math.round(wrapper.scrollLeft / window.innerWidth);
+            [0, 1, 2].forEach(i => {
+                document.getElementById('dot' + i).classList.toggle('active', i === pageIndex);
             });
+        });
+
+        let touchStartY = 0;
+        document.addEventListener('touchstart', e => {
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        document.addEventListener('touchend', e => {
+            const touchEndY = e.changedTouches[0].clientY;
+            const drawer = document.getElementById('appDrawer');
+            if (!drawer.classList.contains('open') && (touchStartY - touchEndY > 70)) {
+                openDrawer();
+            }
+        }, { passive: true });
+
+        function openDrawer() {
+            document.getElementById('appDrawer').classList.add('open');
         }
 
-        function filterApps() {
-            const query = document.getElementById('search').value.toLowerCase();
-            const filtered = allApps.filter(app => app.name.toLowerCase().includes(query));
-            renderApps(filtered);
-        }
-
-        function openModal(pkg, name) {
-            selectedPkg = pkg;
-            document.getElementById('modalAppName').innerText = name;
-            document.getElementById('iconModal').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('iconModal').style.display = 'none';
-        }
-
-        function triggerIconPick() {
-            closeModal();
-            if (window.AndroidLauncher) {
-                window.AndroidLauncher.pickIconForApp(selectedPkg);
+        function handleBackPress() {
+            const drawer = document.getElementById('appDrawer');
+            if (document.getElementById('contextOverlay').style.display === 'flex') {
+                closeMenu();
+            } else if (drawer.classList.contains('open')) {
+                drawer.classList.remove('open');
+            } else {
+                wrapper.scrollTo({ left: window.innerWidth, behavior: 'smooth' });
             }
         }
 
+        function updateClock() {
+            const now = new Date();
+            const h = now.getHours().toString().padStart(2, '0');
+            const m = now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('homeClock').innerText = `${h}:${m}`;
+            document.getElementById('homeDate').innerText = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        }
+        setInterval(updateClock, 1000);
+
+        function loadApps() {
+            if (!window.AndroidLauncher) return;
+            allApps = JSON.parse(window.AndroidLauncher.getInstalledApps());
+            allApps.sort((a, b) => a.name.localeCompare(b.name));
+
+            renderDock();
+            renderSecondPage();
+            renderDrawer(allApps);
+            buildAlphaBar();
+        }
+
+        function triggerAnimatedLaunch(element, packageName) {
+            element.classList.add('opening');
+            document.body.classList.add('launching');
+            setTimeout(() => {
+                if (window.AndroidLauncher) {
+                    window.AndroidLauncher.launchApp(packageName);
+                }
+                setTimeout(onHomeResume, 600);
+            }, 140);
+        }
+
+        function createAppElement(app) {
+            const div = document.createElement('div');
+            div.className = 'app-item';
+            div.id = 'app-' + app.name[0].toUpperCase();
+
+            let timer;
+            let isLongPress = false;
+            div.ontouchstart = (e) => {
+                e.stopPropagation();
+                isLongPress = false;
+                timer = setTimeout(() => {
+                    isLongPress = true;
+                    openContextMenu(app.package);
+                }, 550);
+            };
+            div.ontouchend = () => clearTimeout(timer);
+            div.ontouchmove = () => clearTimeout(timer);
+            div.onclick = () => {
+                if (!isLongPress) triggerAnimatedLaunch(div, app.package);
+            };
+
+            const iconSrc = customIcons[app.package] || app.icon;
+            div.innerHTML = `<img class="app-icon" src="data:image/png;base64,${iconSrc}" /><span class="app-name">${app.name}</span>`;
+            return div;
+        }
+
+        function renderDock() {
+            const dock = document.getElementById('dockBar');
+            dock.innerHTML = '';
+            const priority = ['dialer', 'contacts', 'messaging', 'mms', 'chrome', 'vending', 'camera'];
+            let dockApps = [];
+            priority.forEach(key => {
+                const found = allApps.find(a => a.package.toLowerCase().includes(key) && !dockApps.includes(a));
+                if (found && dockApps.length < 4) dockApps.push(found);
+            });
+            while (dockApps.length < 4 && allApps.length > dockApps.length) {
+                const next = allApps.find(a => !dockApps.includes(a));
+                if (next) dockApps.push(next);
+            }
+            dockApps.forEach(app => dock.appendChild(createAppElement(app)));
+        }
+
+        function renderSecondPage() {
+            const grid = document.getElementById('secondPageGrid');
+            grid.innerHTML = '';
+            allApps.slice(0, 20).forEach(app => grid.appendChild(createAppElement(app)));
+        }
+
+        function renderDrawer(list) {
+            const grid = document.getElementById('drawerGrid');
+            grid.innerHTML = '';
+            list.forEach(app => grid.appendChild(createAppElement(app)));
+        }
+
+        function buildAlphaBar() {
+            const bar = document.getElementById('alphaBar');
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+            bar.innerHTML = letters.map(l => `<span onclick="scrollToLetter('${l}')">${l}</span>`).join('');
+        }
+
+        function scrollToLetter(letter) {
+            const target = document.getElementById('app-' + letter);
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function searchDrawerApps() {
+            const q = document.getElementById('drawerSearch').value.toLowerCase();
+            renderDrawer(allApps.filter(a => a.name.toLowerCase().includes(q)));
+        }
+
+        function filterCategory(cat, el) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            if (cat === 'All') return renderDrawer(allApps);
+            const map = {
+                Social: ['whatsapp', 'facebook', 'messenger', 'instagram', 'tiktok', 'imo', 'telegram'],
+                Media: ['youtube', 'music', 'video', 'mx', 'gallery', 'photo', 'game', 'freefire'],
+                Tools: ['settings', 'files', 'calculator', 'clock', 'calendar', 'chrome', 'drive']
+            };
+            const keys = map[cat] || [];
+            renderDrawer(allApps.filter(a => keys.some(k => a.name.toLowerCase().includes(k) || a.package.toLowerCase().includes(k))));
+        }
+
+        function openContextMenu(pkg) {
+            selectedPkg = pkg;
+            document.getElementById('contextOverlay').style.display = 'flex';
+        }
+        function closeContextMenu(e) {
+            if (e.target.id === 'contextOverlay') closeMenu();
+        }
+        function closeMenu() {
+            document.getElementById('contextOverlay').style.display = 'none';
+        }
+        function triggerIconPick() {
+            closeMenu();
+            if (window.AndroidLauncher) window.AndroidLauncher.pickIconForApp(selectedPkg);
+        }
         function saveCustomIcon(pkg, base64Data) {
             customIcons[pkg] = base64Data;
             localStorage.setItem('custom_icons', JSON.stringify(customIcons));
-            renderApps(allApps);
+            renderDock();
+            renderSecondPage();
+            renderDrawer(allApps);
         }
-
         function resetIcon() {
             delete customIcons[selectedPkg];
             localStorage.setItem('custom_icons', JSON.stringify(customIcons));
-            closeModal();
-            renderApps(allApps);
+            closeMenu();
+            renderDock();
+            renderSecondPage();
+            renderDrawer(allApps);
         }
-
-        window.onload = loadApps;
+        function uninstallSelectedApp() {
+            closeMenu();
+            if (window.AndroidLauncher) window.AndroidLauncher.uninstallApp(selectedPkg);
+        }
+        function openSelectedAppInfo() {
+            closeMenu();
+            if (window.AndroidLauncher) window.AndroidLauncher.openAppInfo(selectedPkg);
+        }
     </script>
 </body>
 </html>
