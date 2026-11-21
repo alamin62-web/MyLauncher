@@ -11,17 +11,23 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
-        body { background: transparent; color: #fff; height: 100vh; width: 100vw; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease; }
-        body.launching { transform: scale(1.1); opacity: 0; }
+        body { background: transparent; color: #fff; height: 100vh; width: 100vw; overflow: hidden; display: flex; flex-direction: column; }
 
-        /* Ultra-Smooth Horizontal Pages */
+        /* Premium Open & Close Spring Animations */
+        .launcher-shell { flex: 1; display: flex; flex-direction: column; width: 100%; height: 100%; transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease; will-change: transform, opacity; }
+        body.launching .launcher-shell { transform: scale(1.14); opacity: 0; }
+        body.resuming .launcher-shell { animation: springReturn 0.36s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes springReturn {
+            0% { transform: scale(1.12); opacity: 0.2; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Horizontal Home Pages */
         .pages-wrapper { flex: 1; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         .pages-wrapper::-webkit-scrollbar { display: none; }
-        
-        /* Calculated Top Padding (11vh / ~86px) matching your screenshot */
-        .page { min-width: 100vw; height: 100%; scroll-snap-align: start; padding: 11vh 16px 6px; display: flex; flex-direction: column; }
+        .page { min-width: 100vw; height: 100%; scroll-snap-align: start; padding: 11vh 14px 6px; display: flex; flex-direction: column; }
 
-        /* Page 0: Zero Screen (No Blur, Fast Solid-Alpha) */
+        /* Page 0: Zero Screen */
         .zero-screen { background: rgba(18, 20, 26, 0.86); }
         .zero-search { background: rgba(255,255,255,0.12); border-radius: 24px; padding: 12px 18px; display: flex; align-items: center; color: #e5e7eb; font-size: 15px; margin-bottom: 18px; }
         .section-head { display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; margin-bottom: 12px; }
@@ -33,12 +39,11 @@
         .z-card h3 { font-size: 30px; font-weight: 600; }
         .z-card p { font-size: 12px; color: #9ca3af; }
 
-        /* Page 1: Main Home Screen Widgets (Positioned lower like screenshot) */
-        .widgets-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 6px; }
+        /* Page 1: Main Home Screen Widgets + Bottom App Slots */
+        .widgets-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 4px; margin-bottom: 18px; }
         .widget-wrap { display: flex; flex-direction: column; align-items: center; }
         .widget-wrap:active { transform: scale(0.96); }
 
-        /* Clock Widget with Real-Time Rotating Second Animation */
         .clock-widget { width: 100%; aspect-ratio: 1/1; background: rgba(24, 26, 30, 0.94); border-radius: 30px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; overflow: hidden; }
         .clock-svg { position: absolute; inset: 4px; width: calc(100% - 8px); height: calc(100% - 8px); pointer-events: none; }
         .clock-date { font-size: 12px; color: #d1d5db; margin-bottom: 4px; z-index: 2; }
@@ -51,124 +56,139 @@
         .xos-sub small { font-size: 11px; color: #4b5563; }
         .widget-label { font-size: 12px; margin-top: 7px; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
 
-        /* Page 2: Home App Grid (4x6 exact XOS spacing) */
-        .home-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px 6px; align-content: start; }
+        /* Home App Grids (4 columns, full width balanced) */
+        .home-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px 4px; align-content: start; flex: 1; }
 
-        /* Lightweight App Item (Zero Lag) */
-        .app-item { display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; }
+        /* App Item & Dragging Visuals */
+        .app-item { display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .app-item:active { transform: scale(0.9); }
-        .app-icon { width: var(--icon-size); height: var(--icon-size); border-radius: var(--icon-radius); object-fit: cover; background: #fff; }
-        .app-name { font-size: 12px; margin-top: 6px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 78px; }
+        .app-icon { width: var(--icon-size); height: var(--icon-size); border-radius: var(--icon-radius); object-fit: cover; background: #fff; pointer-events: none; }
+        .app-name { font-size: 12px; margin-top: 6px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 78px; pointer-events: none; }
 
+        /* Premium Icon Launch Zoom */
         .app-item.opening { z-index: 99; }
-        .app-item.opening .app-icon { transform: scale(1.4); transition: transform 0.2s ease-out; }
+        .app-item.opening .app-icon { transform: scale(1.55); transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1); }
         .app-item.opening .app-name { opacity: 0; }
 
-        /* Page Dots & Clean XOS Dock Box (No Blur) */
+        /* Drag Ghost Clone */
+        .drag-ghost { position: fixed; z-index: 999; pointer-events: none; transform: translate(-50%, -50%) scale(1.18); opacity: 0.92; display: flex; flex-direction: column; align-items: center; }
+        .drag-ghost img { width: var(--icon-size); height: var(--icon-size); border-radius: var(--icon-radius); box-shadow: 0 12px 24px rgba(0,0,0,0.45); }
+
+        /* Page Dots & Dock */
         .bottom-area { padding: 4px 14px 26px; display: flex; flex-direction: column; align-items: center; }
         .dots { display: flex; gap: 7px; margin-bottom: 14px; align-items: center; }
-        .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.45); }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.45); transition: 0.2s; }
         .dot.active { width: 8px; height: 8px; background: #fff; }
-        .dock { width: 100%; background: rgba(52, 56, 66, 0.72); border-radius: 32px; padding: 13px 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; border: 1px solid rgba(255,255,255,0.12); }
+        .dock { width: 100%; background: rgba(52, 56, 66, 0.72); border-radius: 32px; padding: 13px 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; border: 1px solid rgba(255,255,255,0.12); }
         .dock .app-name { display: none; }
 
-        /* 144Hz Ultra-Fast App Drawer (No Blur) */
-        .drawer { position: fixed; inset: 0; background: rgba(18, 20, 26, 0.96); z-index: 50; display: flex; flex-direction: column; transform: translate3d(0, 100%, 0); transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1); padding-top: 52px; will-change: transform; }
+        /* Full-Screen Centered App Drawer with Larger Category Tabs */
+        .drawer { position: fixed; inset: 0; background: rgba(18, 20, 26, 0.96); z-index: 50; display: flex; flex-direction: column; transform: translate3d(0, 100%, 0); transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1); padding-top: 52px; will-change: transform; }
         .drawer.open { transform: translate3d(0, 0, 0); }
-        .drawer-tabs { display: flex; gap: 20px; padding: 0 18px 12px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .drawer-tabs { display: flex; justify-content: space-between; gap: 14px; padding: 0 18px 14px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .drawer-tabs::-webkit-scrollbar { display: none; }
-        .tab { font-size: 15px; color: #9ca3af; white-space: nowrap; padding-bottom: 6px; font-weight: 500; }
-        .tab.active { color: #fff; border-bottom: 2px solid #fff; font-weight: 600; }
+        .tab { font-size: 17px; color: #9ca3af; white-space: nowrap; padding-bottom: 6px; font-weight: 600; transition: color 0.18s; }
+        .tab.active { color: #fff; border-bottom: 2.5px solid #fff; font-weight: 700; }
 
-        .drawer-body { flex: 1; display: flex; overflow: hidden; position: relative; }
-        .drawer-grid { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 6px; padding: 16px 24px 24px 14px; align-content: start; }
-        .alpha-bar { width: 22px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 10px; color: #9ca3af; gap: 2px; padding-right: 4px; }
-        .alpha-bar span { cursor: pointer; padding: 1px 4px; font-weight: 600; }
+        .drawer-body { flex: 1; display: flex; overflow: hidden; position: relative; width: 100%; }
+        /* Balanced Full-Width Grid (Equal Left & Right Margins) */
+        .drawer-grid { flex: 1; width: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 4px; padding: 16px 14px 24px 14px; align-content: start; }
+        /* Ultra-thin floating A-Z bar on far right edge */
+        .alpha-bar { position: absolute; right: 2px; top: 8px; bottom: 8px; width: 14px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 9px; color: rgba(255,255,255,0.55); gap: 1px; z-index: 10; }
+        .alpha-bar span { cursor: pointer; padding: 0 2px; font-weight: 700; }
 
         .drawer-search-wrap { padding: 10px 18px 30px; }
         .drawer-search { width: 100%; background: rgba(255,255,255,0.12); border: none; border-radius: 26px; padding: 13px 20px; color: #fff; font-size: 15px; outline: none; }
         .drawer-search::placeholder { color: #d1d5db; }
 
-        /* Full XOS Long-Press Context Menu (No Blur) */
+        /* Long-Press Context Menu */
         .context-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 100; align-items: center; justify-content: center; }
-        .xos-menu { background: #22252c; border-radius: 24px; width: 84%; max-width: 320px; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); }
+        .xos-menu { background: #22252c; border-radius: 24px; width: 84%; max-width: 320px; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); animation: popMenu 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes popMenu { from { transform: scale(0.84); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         .menu-top-actions { display: grid; grid-template-columns: repeat(4, 1fr); padding: 16px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center; }
         .top-act { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; color: #e5e7eb; cursor: pointer; }
-        .top-act:active { opacity: 0.7; }
         .top-act svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 1.8; }
         .menu-list-item { padding: 15px 20px; display: flex; align-items: center; gap: 14px; font-size: 15px; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.06); cursor: pointer; }
-        .menu-list-item:active { background: rgba(255,255,255,0.1); }
     </style>
 </head>
 <body>
 
-    <div class="pages-wrapper" id="pagesWrapper">
-        <!-- Page 0: Left Zero Screen -->
-        <div class="page zero-screen">
-            <div class="zero-search" onclick="openDrawer()">🔍 Search apps & services...</div>
-            <div class="section-head"><span>My Services</span><span>⊕</span></div>
-            <div class="xos-banner">
-                <h2>XOS <span>16</span></h2>
-                <p style="font-size:13px; color:#374151;">Personalized Smart Launcher</p>
-            </div>
-            <div class="zero-cards">
-                <div class="z-card">
-                    <h3 id="batText">52%</h3>
-                    <p>Battery Level</p>
+    <div class="launcher-shell" id="launcherShell">
+        <div class="pages-wrapper" id="pagesWrapper">
+            <!-- Page 0: Left Zero Screen -->
+            <div class="page zero-screen">
+                <div class="zero-search" onclick="openDrawer()">🔍 Search apps & services...</div>
+                <div class="section-head"><span>My Services</span><span>⊕</span></div>
+                <div class="xos-banner">
+                    <h2>XOS <span>16</span></h2>
+                    <p style="font-size:13px; color:#374151;">Personalized Smart Launcher</p>
                 </div>
-                <div class="z-card" onclick="openDrawer()">
-                    <h3 style="text-align:center;">+</h3>
-                    <p style="text-align:center;">All Apps</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Page 1: Main XOS 16 Home Screen -->
-        <div class="page" id="mainHomePage">
-            <div class="widgets-row">
-                <div class="widget-wrap">
-                    <div class="clock-widget">
-                        <svg class="clock-svg" viewBox="0 0 100 100">
-                            <rect x="3" y="3" width="94" height="94" rx="26" ry="26" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2" stroke-dasharray="2 4.1" />
-                            <rect id="secondProgress" x="3" y="3" width="94" height="94" rx="26" ry="26" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="332" stroke-dashoffset="332" />
-                        </svg>
-                        <div class="clock-date" id="homeDate">Sat, Nov 21</div>
-                        <div class="clock-time" id="homeClock">03:29</div>
-                        <div class="clock-weather">☁ 22°</div>
+                <div class="zero-cards">
+                    <div class="z-card">
+                        <h3 id="batText">52%</h3>
+                        <p>Battery Level</p>
                     </div>
-                    <span class="widget-label">Clock</span>
+                    <div class="z-card" onclick="openDrawer()">
+                        <h3 style="text-align:center;">+</h3>
+                        <p style="text-align:center;">All Apps</p>
+                    </div>
                 </div>
-                <div class="widget-wrap" onclick="openDrawer()">
-                    <div class="xos-widget">
-                        <div class="xos-16-num">16</div>
-                        <div class="xos-sub">
-                            <b>XOS</b>
-                            <small>Explore More</small>
+            </div>
+
+            <!-- Page 1: Main XOS 16 Home Screen (Widgets + Bottom App Row) -->
+            <div class="page" id="homePage1">
+                <div class="widgets-row">
+                    <div class="widget-wrap">
+                        <div class="clock-widget">
+                            <svg class="clock-svg" viewBox="0 0 100 100">
+                                <rect x="3" y="3" width="94" height="94" rx="26" ry="26" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2" stroke-dasharray="2 4.1" />
+                                <rect id="secondProgress" x="3" y="3" width="94" height="94" rx="26" ry="26" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="332" stroke-dashoffset="332" />
+                            </svg>
+                            <div class="clock-date" id="homeDate">Sat, Nov 21</div>
+                            <div class="clock-time" id="homeClock">03:29</div>
+                            <div class="clock-weather">☁ 22°</div>
                         </div>
+                        <span class="widget-label">Clock</span>
                     </div>
-                    <span class="widget-label">AI Suggestions</span>
+                    <div class="widget-wrap" onclick="openDrawer()">
+                        <div class="xos-widget">
+                            <div class="xos-16-num">16</div>
+                            <div class="xos-sub">
+                                <b>XOS</b>
+                                <small>Explore More</small>
+                            </div>
+                        </div>
+                        <span class="widget-label">AI Suggestions</span>
+                    </div>
                 </div>
+                <div class="home-grid" id="gridPage1"></div>
+            </div>
+
+            <!-- Page 2: Second Home Screen Page -->
+            <div class="page" id="homePage2">
+                <div class="home-grid" id="gridPage2"></div>
+            </div>
+
+            <!-- Page 3: Third Home Screen Page -->
+            <div class="page" id="homePage3">
+                <div class="home-grid" id="gridPage3"></div>
             </div>
         </div>
 
-        <!-- Page 2: Second App Page (4x6 XOS Grid) -->
-        <div class="page">
-            <div class="home-grid" id="secondPageGrid"></div>
+        <!-- Bottom Page Indicators & XOS Dock -->
+        <div class="bottom-area">
+            <div class="dots" id="dotsContainer">
+                <div class="dot" id="dot0"></div>
+                <div class="dot active" id="dot1"></div>
+                <div class="dot" id="dot2"></div>
+                <div class="dot" id="dot3"></div>
+            </div>
+            <div class="dock" id="dockBar"></div>
         </div>
     </div>
 
-    <!-- Bottom Page Indicators & XOS Dock -->
-    <div class="bottom-area">
-        <div class="dots">
-            <div class="dot" id="dot0"></div>
-            <div class="dot active" id="dot1"></div>
-            <div class="dot" id="dot2"></div>
-        </div>
-        <div class="dock" id="dockBar"></div>
-    </div>
-
-    <!-- Swipe-Up App Drawer -->
+    <!-- Swipe-Up Full-Screen App Drawer -->
     <div class="drawer" id="appDrawer">
         <div class="drawer-tabs">
             <div class="tab active" onclick="filterCategory('All', this)">All</div>
@@ -176,7 +196,7 @@
             <div class="tab" onclick="filterCategory('Media', this)">Entertainment</div>
             <div class="tab" onclick="filterCategory('Tools', this)">Tools</div>
         </div>
-        <div class="drawer-body">
+        <div class="drawer-body" id="drawerBody">
             <div class="drawer-grid" id="drawerGrid"></div>
             <div class="alpha-bar" id="alphaBar"></div>
         </div>
@@ -206,6 +226,10 @@
                     <span>App info</span>
                 </div>
             </div>
+            <div class="menu-list-item" onclick="addToHomeNextFree()">
+                <span>➕</span>
+                <span>Add to Home Screen</span>
+            </div>
             <div class="menu-list-item" onclick="triggerIconPick()">
                 <span>🖼️</span>
                 <span>Change App Icon (Gallery)</span>
@@ -226,7 +250,8 @@
         let selectedPkg = '';
         let selectedAppName = '';
         let customIcons = JSON.parse(localStorage.getItem('custom_icons') || '{}');
-        let hiddenHomeApps = JSON.parse(localStorage.getItem('hidden_home_apps') || '[]');
+        // Store app layout across 3 home pages: { page1: [], page2: [], page3: [] }
+        let homePagesData = JSON.parse(localStorage.getItem('home_pages_data') || 'null');
 
         const wrapper = document.getElementById('pagesWrapper');
         window.addEventListener('load', () => {
@@ -240,7 +265,9 @@
 
         function onHomeResume() {
             document.body.classList.remove('launching');
+            document.body.classList.add('resuming');
             document.querySelectorAll('.app-item.opening').forEach(el => el.classList.remove('opening'));
+            setTimeout(() => document.body.classList.remove('resuming'), 400);
         }
 
         let scrollTicking = false;
@@ -248,8 +275,9 @@
             if (!scrollTicking) {
                 requestAnimationFrame(() => {
                     const pageIndex = Math.round(wrapper.scrollLeft / window.innerWidth);
-                    [0, 1, 2].forEach(i => {
-                        document.getElementById('dot' + i).classList.toggle('active', i === pageIndex);
+                    [0, 1, 2, 3].forEach(i => {
+                        const dot = document.getElementById('dot' + i);
+                        if (dot) dot.classList.toggle('active', i === pageIndex);
                     });
                     scrollTicking = false;
                 });
@@ -257,6 +285,7 @@
             }
         }, { passive: true });
 
+        // Swipe Up on Home -> Open App Drawer
         let touchStartY = 0;
         document.addEventListener('touchstart', e => {
             touchStartY = e.touches[0].clientY;
@@ -270,8 +299,26 @@
             }
         }, { passive: true });
 
+        // Swipe Down inside App Drawer (when scrolled to top) -> Return to Home Screen
+        const drawerGrid = document.getElementById('drawerGrid');
+        let drawerTouchStartY = 0;
+        drawerGrid.addEventListener('touchstart', e => {
+            drawerTouchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        drawerGrid.addEventListener('touchmove', e => {
+            const diffY = e.touches[0].clientY - drawerTouchStartY;
+            if (drawerGrid.scrollTop <= 0 && diffY > 75) {
+                closeDrawer();
+            }
+        }, { passive: true });
+
         function openDrawer() {
             document.getElementById('appDrawer').classList.add('open');
+        }
+
+        function closeDrawer() {
+            document.getElementById('appDrawer').classList.remove('open');
         }
 
         function handleBackPress() {
@@ -279,7 +326,7 @@
             if (document.getElementById('contextOverlay').style.display === 'flex') {
                 closeMenu();
             } else if (drawer.classList.contains('open')) {
-                drawer.classList.remove('open');
+                closeDrawer();
             } else {
                 wrapper.scrollTo({ left: window.innerWidth, behavior: 'smooth' });
             }
@@ -309,10 +356,23 @@
             allApps = JSON.parse(window.AndroidLauncher.getInstalledApps());
             allApps.sort((a, b) => a.name.localeCompare(b.name));
 
+            if (!homePagesData) {
+                homePagesData = {
+                    page1: allApps.slice(0, 8).map(a => a.package),
+                    page2: allApps.slice(8, 28).map(a => a.package),
+                    page3: allApps.slice(28, 44).map(a => a.package)
+                };
+                saveHomeLayout();
+            }
+
             renderDock();
-            renderSecondPage();
+            renderAllHomePages();
             renderDrawer(allApps);
             buildAlphaBar();
+        }
+
+        function saveHomeLayout() {
+            localStorage.setItem('home_pages_data', JSON.stringify(homePagesData));
         }
 
         function triggerAnimatedLaunch(element, packageName) {
@@ -323,33 +383,152 @@
                     window.AndroidLauncher.launchApp(packageName);
                 }
                 setTimeout(onHomeResume, 500);
-            }, 110);
+            }, 130);
         }
 
-        function createAppElement(app) {
+        // Drag & Move Variables
+        let dragGhost = null;
+        let draggingPkg = null;
+        let draggingFromPage = null;
+        let edgeSwitchTimer = null;
+
+        function createAppElement(app, pageKey = null) {
             const div = document.createElement('div');
             div.className = 'app-item';
+            div.dataset.pkg = app.package;
             div.dataset.letter = app.name[0].toUpperCase();
 
-            let timer;
-            let isLongPress = false;
+            let pressTimer;
+            let isDragging = false;
+            let startX = 0, startY = 0;
+
             div.ontouchstart = (e) => {
                 e.stopPropagation();
-                isLongPress = false;
-                timer = setTimeout(() => {
-                    isLongPress = true;
-                    openContextMenu(app.package, app.name);
-                }, 500);
+                isDragging = false;
+                const touch = e.touches[0];
+                startX = touch.clientX;
+                startY = touch.clientY;
+
+                pressTimer = setTimeout(() => {
+                    openContextMenu(app.package, app.name, pageKey);
+                }, 520);
             };
-            div.ontouchend = () => clearTimeout(timer);
-            div.ontouchmove = () => clearTimeout(timer);
+
+            div.ontouchmove = (e) => {
+                const touch = e.touches[0];
+                const moveDist = Math.hypot(touch.clientX - startX, touch.clientY - startY);
+
+                // If user holds & drags slightly on a Home Page app, start Drag-to-Move
+                if (pageKey && moveDist > 14 && !isDragging) {
+                    clearTimeout(pressTimer);
+                    closeMenu();
+                    isDragging = true;
+                    startDrag(app, pageKey, touch.clientX, touch.clientY, div);
+                }
+
+                if (isDragging && dragGhost) {
+                    e.preventDefault();
+                    dragGhost.style.left = touch.clientX + 'px';
+                    dragGhost.style.top = touch.clientY + 'px';
+                    handleEdgePageSwitch(touch.clientX);
+                } else if (moveDist > 10) {
+                    clearTimeout(pressTimer);
+                }
+            };
+
+            div.ontouchend = (e) => {
+                clearTimeout(pressTimer);
+                if (isDragging) {
+                    const touch = e.changedTouches[0];
+                    finishDrag(touch.clientX, touch.clientY);
+                    isDragging = false;
+                }
+            };
+
             div.onclick = () => {
-                if (!isLongPress) triggerAnimatedLaunch(div, app.package);
+                if (!isDragging) triggerAnimatedLaunch(div, app.package);
             };
 
             const iconSrc = customIcons[app.package] || app.icon;
             div.innerHTML = `<img class="app-icon" decoding="async" src="data:image/webp;base64,${iconSrc}" /><span class="app-name">${app.name}</span>`;
             return div;
+        }
+
+        function startDrag(app, pageKey, x, y, sourceEl) {
+            draggingPkg = app.package;
+            draggingFromPage = pageKey;
+            sourceEl.style.opacity = '0.3';
+
+            const iconSrc = customIcons[app.package] || app.icon;
+            dragGhost = document.createElement('div');
+            dragGhost.className = 'drag-ghost';
+            dragGhost.style.left = x + 'px';
+            dragGhost.style.top = y + 'px';
+            dragGhost.innerHTML = `<img src="data:image/webp;base64,${iconSrc}" />`;
+            document.body.appendChild(dragGhost);
+        }
+
+        function handleEdgePageSwitch(x) {
+            if (edgeSwitchTimer) return;
+            const w = window.innerWidth;
+            const currentPage = Math.round(wrapper.scrollLeft / w);
+
+            if (x > w - 35 && currentPage < 3) {
+                edgeSwitchTimer = setTimeout(() => {
+                    wrapper.scrollTo({ left: (currentPage + 1) * w, behavior: 'smooth' });
+                    edgeSwitchTimer = null;
+                }, 450);
+            } else if (x < 35 && currentPage > 1) {
+                edgeSwitchTimer = setTimeout(() => {
+                    wrapper.scrollTo({ left: (currentPage - 1) * w, behavior: 'smooth' });
+                    edgeSwitchTimer = null;
+                }, 450);
+            }
+        }
+
+        function finishDrag(dropX, dropY) {
+            if (dragGhost) {
+                dragGhost.remove();
+                dragGhost = null;
+            }
+            if (edgeSwitchTimer) {
+                clearTimeout(edgeSwitchTimer);
+                edgeSwitchTimer = null;
+            }
+
+            const currentPageIdx = Math.round(wrapper.scrollLeft / window.innerWidth);
+            const targetPageKey = currentPageIdx >= 1 && currentPageIdx <= 3 ? 'page' + currentPageIdx : draggingFromPage;
+
+            // Remove from old page
+            homePagesData[draggingFromPage] = homePagesData[draggingFromPage].filter(p => p !== draggingPkg);
+
+            // Find drop target element on current page to reorder
+            const elemUnder = document.elementFromPoint(dropX, dropY);
+            const targetItem = elemUnder ? elemUnder.closest('.app-item') : null;
+
+            if (targetItem && targetItem.dataset.pkg && homePagesData[targetPageKey].includes(targetItem.dataset.pkg)) {
+                const insertIdx = homePagesData[targetPageKey].indexOf(targetItem.dataset.pkg);
+                homePagesData[targetPageKey].splice(insertIdx, 0, draggingPkg);
+            } else {
+                homePagesData[targetPageKey].push(draggingPkg);
+            }
+
+            saveHomeLayout();
+            renderAllHomePages();
+            draggingPkg = null;
+        }
+
+        function renderAllHomePages() {
+            ['page1', 'page2', 'page3'].forEach((key, index) => {
+                const grid = document.getElementById('gridPage' + (index + 1));
+                grid.innerHTML = '';
+                const frag = document.createDocumentFragment();
+                (homePagesData[key] || []).forEach(pkg => {
+                    const app = allApps.find(a => a.package === pkg);
+                    if (app) frag.appendChild(createAppElement(app, key));
+                });
+                grid.appendChild(frag);
+            });
         }
 
         function renderDock() {
@@ -366,24 +545,15 @@
                 if (next) dockApps.push(next);
             }
             const frag = document.createDocumentFragment();
-            dockApps.forEach(app => frag.appendChild(createAppElement(app)));
+            dockApps.forEach(app => frag.appendChild(createAppElement(app, null)));
             dock.appendChild(frag);
-        }
-
-        function renderSecondPage() {
-            const grid = document.getElementById('secondPageGrid');
-            grid.innerHTML = '';
-            const visibleApps = allApps.filter(a => !hiddenHomeApps.includes(a.package)).slice(0, 24);
-            const frag = document.createDocumentFragment();
-            visibleApps.forEach(app => frag.appendChild(createAppElement(app)));
-            grid.appendChild(frag);
         }
 
         function renderDrawer(list) {
             const grid = document.getElementById('drawerGrid');
             grid.innerHTML = '';
             const frag = document.createDocumentFragment();
-            list.forEach(app => frag.appendChild(createAppElement(app)));
+            list.forEach(app => frag.appendChild(createAppElement(app, null)));
             grid.appendChild(frag);
         }
 
@@ -416,9 +586,12 @@
             renderDrawer(allApps.filter(a => keys.some(k => a.name.toLowerCase().includes(k) || a.package.toLowerCase().includes(k))));
         }
 
-        function openContextMenu(pkg, name) {
+        // Context Menu Actions
+        let selectedFromPage = null;
+        function openContextMenu(pkg, name, pageKey) {
             selectedPkg = pkg;
             selectedAppName = name;
+            selectedFromPage = pageKey;
             document.getElementById('contextOverlay').style.display = 'flex';
         }
         function closeContextMenu(e) {
@@ -426,6 +599,16 @@
         }
         function closeMenu() {
             document.getElementById('contextOverlay').style.display = 'none';
+        }
+        function addToHomeNextFree() {
+            if (!homePagesData.page2.includes(selectedPkg)) {
+                homePagesData.page2.push(selectedPkg);
+                saveHomeLayout();
+                renderAllHomePages();
+            }
+            closeMenu();
+            closeDrawer();
+            wrapper.scrollTo({ left: window.innerWidth * 2, behavior: 'smooth' });
         }
         function triggerIconPick() {
             closeMenu();
@@ -435,7 +618,7 @@
             customIcons[pkg] = base64Data;
             localStorage.setItem('custom_icons', JSON.stringify(customIcons));
             renderDock();
-            renderSecondPage();
+            renderAllHomePages();
             renderDrawer(allApps);
         }
         function resetIcon() {
@@ -443,7 +626,7 @@
             localStorage.setItem('custom_icons', JSON.stringify(customIcons));
             closeMenu();
             renderDock();
-            renderSecondPage();
+            renderAllHomePages();
             renderDrawer(allApps);
         }
         function shareSelectedApp() {
@@ -451,12 +634,12 @@
             if (window.AndroidLauncher) window.AndroidLauncher.shareApp(selectedPkg, selectedAppName);
         }
         function removeSelectedApp() {
-            if (!hiddenHomeApps.includes(selectedPkg)) {
-                hiddenHomeApps.push(selectedPkg);
-                localStorage.setItem('hidden_home_apps', JSON.stringify(hiddenHomeApps));
+            if (selectedFromPage && homePagesData[selectedFromPage]) {
+                homePagesData[selectedFromPage] = homePagesData[selectedFromPage].filter(p => p !== selectedPkg);
+                saveHomeLayout();
+                renderAllHomePages();
             }
             closeMenu();
-            renderSecondPage();
         }
         function uninstallSelectedApp() {
             closeMenu();
