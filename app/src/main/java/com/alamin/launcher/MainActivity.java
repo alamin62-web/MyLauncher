@@ -39,7 +39,6 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Force Highest Refresh Rate (144Hz / 120Hz)
         Window window = getWindow();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             Display display = getDisplay();
@@ -57,7 +56,6 @@ public class MainActivity extends Activity {
             }
         }
 
-        // Full Transparent Status Bar & Navigation Bar
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS | WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.setStatusBarColor(Color.TRANSPARENT);
