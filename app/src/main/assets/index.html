@@ -6,73 +6,74 @@
     <title>XOS 16 Launcher</title>
     <style>
         :root {
-            /* Proportional sizing calculated from XOS 16 screenshot (360dp x 800dp ratio) */
             --icon-size: clamp(58px, 16.8vw, 66px);
             --icon-radius: clamp(16px, 4.6vw, 19px);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
-        body { background: transparent; color: #fff; height: 100vh; width: 100vw; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease; will-change: transform, opacity; }
-        body.launching { transform: scale(1.12); opacity: 0; }
+        body { background: transparent; color: #fff; height: 100vh; width: 100vw; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease; }
+        body.launching { transform: scale(1.1); opacity: 0; }
 
-        /* Horizontal Pages Container */
-        .pages-wrapper { flex: 1; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; }
+        /* Ultra-Smooth Horizontal Pages */
+        .pages-wrapper { flex: 1; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         .pages-wrapper::-webkit-scrollbar { display: none; }
-        .page { min-width: 100vw; height: 100%; scroll-snap-align: start; padding: 48px 16px 8px; display: flex; flex-direction: column; }
+        
+        /* Calculated Top Padding (11vh / ~86px) matching your screenshot */
+        .page { min-width: 100vw; height: 100%; scroll-snap-align: start; padding: 11vh 16px 6px; display: flex; flex-direction: column; }
 
-        /* Page 0: Zero Screen (My Services) */
-        .zero-screen { background: rgba(20, 22, 28, 0.65); backdrop-filter: blur(20px); }
-        .zero-search { background: rgba(255,255,255,0.14); border-radius: 24px; padding: 12px 18px; display: flex; align-items: center; color: #e5e7eb; font-size: 15px; margin-bottom: 18px; }
+        /* Page 0: Zero Screen (No Blur, Fast Solid-Alpha) */
+        .zero-screen { background: rgba(18, 20, 26, 0.86); }
+        .zero-search { background: rgba(255,255,255,0.12); border-radius: 24px; padding: 12px 18px; display: flex; align-items: center; color: #e5e7eb; font-size: 15px; margin-bottom: 18px; }
         .section-head { display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; margin-bottom: 12px; }
         .xos-banner { background: linear-gradient(135deg, #e0f2fe 0%, #f3e8ff 50%, #dcfce7 100%); border-radius: 24px; padding: 22px; color: #111; height: 155px; margin-bottom: 16px; display: flex; flex-direction: column; justify-content: space-between; }
         .xos-banner h2 { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
         .xos-banner span { background: linear-gradient(90deg, #10b981, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .zero-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-        .z-card { background: rgba(35, 38, 46, 0.85); border-radius: 24px; padding: 18px; height: 145px; display: flex; flex-direction: column; justify-content: space-between; }
+        .z-card { background: rgba(34, 37, 45, 0.94); border-radius: 24px; padding: 18px; height: 145px; display: flex; flex-direction: column; justify-content: space-between; }
         .z-card h3 { font-size: 30px; font-weight: 600; }
         .z-card p { font-size: 12px; color: #9ca3af; }
 
-        /* Page 1: Main Home Screen Widgets */
-        .widgets-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px; }
-        .widget-wrap { display: flex; flex-direction: column; align-items: center; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .widget-wrap:active { transform: scale(0.95); }
+        /* Page 1: Main Home Screen Widgets (Positioned lower like screenshot) */
+        .widgets-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 6px; }
+        .widget-wrap { display: flex; flex-direction: column; align-items: center; }
+        .widget-wrap:active { transform: scale(0.96); }
 
         /* Clock Widget with Real-Time Rotating Second Animation */
-        .clock-widget { width: 100%; aspect-ratio: 1/1; background: rgba(24, 26, 30, 0.92); border-radius: 30px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.35); overflow: hidden; }
+        .clock-widget { width: 100%; aspect-ratio: 1/1; background: rgba(24, 26, 30, 0.94); border-radius: 30px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; overflow: hidden; }
         .clock-svg { position: absolute; inset: 4px; width: calc(100% - 8px); height: calc(100% - 8px); pointer-events: none; }
         .clock-date { font-size: 12px; color: #d1d5db; margin-bottom: 4px; z-index: 2; }
         .clock-time { font-size: clamp(38px, 11vw, 46px); font-weight: 800; letter-spacing: -1px; line-height: 1; font-variant-numeric: tabular-nums; z-index: 2; }
         .clock-weather { font-size: 12px; color: #9ca3af; margin-top: 8px; z-index: 2; }
 
-        .xos-widget { width: 100%; aspect-ratio: 1/1; background: linear-gradient(145deg, #ffffff 0%, #e5e7eb 100%); border-radius: 30px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; color: #111; box-shadow: 0 10px 25px rgba(0,0,0,0.25); }
+        .xos-widget { width: 100%; aspect-ratio: 1/1; background: linear-gradient(145deg, #ffffff 0%, #e5e7eb 100%); border-radius: 30px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; color: #111; }
         .xos-16-num { font-size: clamp(54px, 16vw, 66px); font-weight: 900; line-height: 0.95; background: linear-gradient(180deg, #2dd4bf 0%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .xos-sub b { font-size: 18px; letter-spacing: 1px; display: block; }
         .xos-sub small { font-size: 11px; color: #4b5563; }
-        .widget-label { font-size: 12px; margin-top: 7px; text-shadow: 0 1px 3px rgba(0,0,0,0.85); }
+        .widget-label { font-size: 12px; margin-top: 7px; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
 
         /* Page 2: Home App Grid (4x6 exact XOS spacing) */
-        .home-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 6px; align-content: start; margin-top: 4px; }
+        .home-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px 6px; align-content: start; }
 
-        /* App Icon & Click Pop-Zoom Animation */
-        .app-item { display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1); contain: layout style; }
-        .app-item:active { transform: scale(0.88); }
-        .app-icon { width: var(--icon-size); height: var(--icon-size); border-radius: var(--icon-radius); object-fit: cover; background: #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.22); transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), filter 0.2s; transform: translateZ(0); }
-        .app-name { font-size: 12px; margin-top: 6px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 78px; }
+        /* Lightweight App Item (Zero Lag) */
+        .app-item { display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; }
+        .app-item:active { transform: scale(0.9); }
+        .app-icon { width: var(--icon-size); height: var(--icon-size); border-radius: var(--icon-radius); object-fit: cover; background: #fff; }
+        .app-name { font-size: 12px; margin-top: 6px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 78px; }
 
         .app-item.opening { z-index: 99; }
-        .app-item.opening .app-icon { transform: scale(1.45); filter: brightness(1.15); box-shadow: 0 12px 28px rgba(0,0,0,0.5); }
+        .app-item.opening .app-icon { transform: scale(1.4); transition: transform 0.2s ease-out; }
         .app-item.opening .app-name { opacity: 0; }
 
-        /* Page Dots & Exact XOS Glass Dock Box */
-        .bottom-area { padding: 4px 14px 28px; display: flex; flex-direction: column; align-items: center; }
+        /* Page Dots & Clean XOS Dock Box (No Blur) */
+        .bottom-area { padding: 4px 14px 26px; display: flex; flex-direction: column; align-items: center; }
         .dots { display: flex; gap: 7px; margin-bottom: 14px; align-items: center; }
-        .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.45); transition: 0.2s; }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.45); }
         .dot.active { width: 8px; height: 8px; background: #fff; }
-        .dock { width: 100%; background: rgba(58, 62, 72, 0.52); backdrop-filter: blur(18px); border-radius: 32px; padding: 13px 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+        .dock { width: 100%; background: rgba(52, 56, 66, 0.72); border-radius: 32px; padding: 13px 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; border: 1px solid rgba(255,255,255,0.12); }
         .dock .app-name { display: none; }
 
-        /* Ultra-Smooth 60fps App Drawer (Swipe Up) */
-        .drawer { position: fixed; inset: 0; background: rgba(20, 22, 28, 0.88); backdrop-filter: blur(24px); z-index: 50; display: flex; flex-direction: column; transform: translate3d(0, 100%, 0); transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); padding-top: 46px; will-change: transform; }
+        /* 144Hz Ultra-Fast App Drawer (No Blur) */
+        .drawer { position: fixed; inset: 0; background: rgba(18, 20, 26, 0.96); z-index: 50; display: flex; flex-direction: column; transform: translate3d(0, 100%, 0); transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1); padding-top: 52px; will-change: transform; }
         .drawer.open { transform: translate3d(0, 0, 0); }
         .drawer-tabs { display: flex; gap: 20px; padding: 0 18px 12px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid rgba(255,255,255,0.08); }
         .drawer-tabs::-webkit-scrollbar { display: none; }
@@ -80,19 +81,17 @@
         .tab.active { color: #fff; border-bottom: 2px solid #fff; font-weight: 600; }
 
         .drawer-body { flex: 1; display: flex; overflow: hidden; position: relative; }
-        .drawer-grid { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 6px; padding: 16px 24px 24px 14px; align-content: start; contain: content; }
-        .drawer-grid .app-item { content-visibility: auto; contain-intrinsic-size: 86px; }
+        .drawer-grid { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 6px; padding: 16px 24px 24px 14px; align-content: start; }
         .alpha-bar { width: 22px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 10px; color: #9ca3af; gap: 2px; padding-right: 4px; }
         .alpha-bar span { cursor: pointer; padding: 1px 4px; font-weight: 600; }
 
-        .drawer-search-wrap { padding: 10px 18px 32px; }
-        .drawer-search { width: 100%; background: rgba(255,255,255,0.14); border: none; border-radius: 26px; padding: 13px 20px; color: #fff; font-size: 15px; outline: none; }
+        .drawer-search-wrap { padding: 10px 18px 30px; }
+        .drawer-search { width: 100%; background: rgba(255,255,255,0.12); border: none; border-radius: 26px; padding: 13px 20px; color: #fff; font-size: 15px; outline: none; }
         .drawer-search::placeholder { color: #d1d5db; }
 
-        /* Full XOS Long-Press Context Menu */
-        .context-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; }
-        .xos-menu { background: rgba(34, 36, 40, 0.95); backdrop-filter: blur(20px); border-radius: 24px; width: 84%; max-width: 320px; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 15px 35px rgba(0,0,0,0.55); animation: popMenu 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        @keyframes popMenu { from { transform: scale(0.84); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        /* Full XOS Long-Press Context Menu (No Blur) */
+        .context-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 100; align-items: center; justify-content: center; }
+        .xos-menu { background: #22252c; border-radius: 24px; width: 84%; max-width: 320px; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); }
 
         .menu-top-actions { display: grid; grid-template-columns: repeat(4, 1fr); padding: 16px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center; }
         .top-act { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; color: #e5e7eb; cursor: pointer; }
@@ -130,10 +129,9 @@
             <div class="widgets-row">
                 <div class="widget-wrap">
                     <div class="clock-widget">
-                        <!-- Live Second Hand Border Animation -->
                         <svg class="clock-svg" viewBox="0 0 100 100">
                             <rect x="3" y="3" width="94" height="94" rx="26" ry="26" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2" stroke-dasharray="2 4.1" />
-                            <rect id="secondProgress" x="3" y="3" width="94" height="94" rx="26" ry="26" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="332" stroke-dashoffset="332" style="transition: stroke-dashoffset 0.25s linear;" />
+                            <rect id="secondProgress" x="3" y="3" width="94" height="94" rx="26" ry="26" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="332" stroke-dashoffset="332" />
                         </svg>
                         <div class="clock-date" id="homeDate">Sat, Nov 21</div>
                         <div class="clock-time" id="homeClock">03:29</div>
@@ -160,7 +158,7 @@
         </div>
     </div>
 
-    <!-- Bottom Page Indicators & Glass Dock -->
+    <!-- Bottom Page Indicators & XOS Dock -->
     <div class="bottom-area">
         <div class="dots">
             <div class="dot" id="dot0"></div>
@@ -187,7 +185,7 @@
         </div>
     </div>
 
-    <!-- XOS Long-Press Context Menu (Share, Remove, Uninstall, App info + Icon Change) -->
+    <!-- XOS Long-Press Context Menu -->
     <div class="context-overlay" id="contextOverlay" onclick="closeContextMenu(event)">
         <div class="xos-menu" onclick="event.stopPropagation()">
             <div class="menu-top-actions">
@@ -245,11 +243,18 @@
             document.querySelectorAll('.app-item.opening').forEach(el => el.classList.remove('opening'));
         }
 
+        let scrollTicking = false;
         wrapper.addEventListener('scroll', () => {
-            const pageIndex = Math.round(wrapper.scrollLeft / window.innerWidth);
-            [0, 1, 2].forEach(i => {
-                document.getElementById('dot' + i).classList.toggle('active', i === pageIndex);
-            });
+            if (!scrollTicking) {
+                requestAnimationFrame(() => {
+                    const pageIndex = Math.round(wrapper.scrollLeft / window.innerWidth);
+                    [0, 1, 2].forEach(i => {
+                        document.getElementById('dot' + i).classList.toggle('active', i === pageIndex);
+                    });
+                    scrollTicking = false;
+                });
+                scrollTicking = true;
+            }
         }, { passive: true });
 
         let touchStartY = 0;
@@ -280,7 +285,6 @@
             }
         }
 
-        // Clock & Live Rotating Second Animation
         function updateClock() {
             const now = new Date();
             const h = now.getHours().toString().padStart(2, '0');
@@ -290,12 +294,11 @@
             document.getElementById('homeClock').innerText = `${h}:${m}`;
             document.getElementById('homeDate').innerText = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
-            // Rotate border progress smoothly with each second (0 to 60)
             const totalPerimeter = 332;
             const offset = totalPerimeter - (s / 60) * totalPerimeter;
             const progEl = document.getElementById('secondProgress');
             if (progEl) {
-                progEl.style.transition = s === 0 ? 'none' : 'stroke-dashoffset 0.3s linear';
+                progEl.style.transition = s === 0 ? 'none' : 'stroke-dashoffset 0.25s linear';
                 progEl.style.strokeDashoffset = offset;
             }
         }
@@ -319,8 +322,8 @@
                 if (window.AndroidLauncher) {
                     window.AndroidLauncher.launchApp(packageName);
                 }
-                setTimeout(onHomeResume, 600);
-            }, 130);
+                setTimeout(onHomeResume, 500);
+            }, 110);
         }
 
         function createAppElement(app) {
@@ -336,7 +339,7 @@
                 timer = setTimeout(() => {
                     isLongPress = true;
                     openContextMenu(app.package, app.name);
-                }, 520);
+                }, 500);
             };
             div.ontouchend = () => clearTimeout(timer);
             div.ontouchmove = () => clearTimeout(timer);
@@ -345,7 +348,7 @@
             };
 
             const iconSrc = customIcons[app.package] || app.icon;
-            div.innerHTML = `<img class="app-icon" loading="lazy" src="data:image/webp;base64,${iconSrc}" /><span class="app-name">${app.name}</span>`;
+            div.innerHTML = `<img class="app-icon" decoding="async" src="data:image/webp;base64,${iconSrc}" /><span class="app-name">${app.name}</span>`;
             return div;
         }
 
@@ -392,7 +395,7 @@
 
         function scrollToLetter(letter) {
             const target = document.querySelector(`#drawerGrid .app-item[data-letter="${letter}"]`);
-            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (target) target.scrollIntoView({ behavior: 'auto', block: 'start' });
         }
 
         function searchDrawerApps() {
@@ -413,7 +416,6 @@
             renderDrawer(allApps.filter(a => keys.some(k => a.name.toLowerCase().includes(k) || a.package.toLowerCase().includes(k))));
         }
 
-        // Context Menu Actions
         function openContextMenu(pkg, name) {
             selectedPkg = pkg;
             selectedAppName = name;
