@@ -12,9 +12,13 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.BatteryManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Base64;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -32,13 +36,28 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Full Transparent Status Bar & Navigation Bar
+        Window window = getWindow();
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS | WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.setStatusBarColor(Color.TRANSPARENT);
+        window.setNavigationBarColor(Color.TRANSPARENT);
+        window.getDecorView().setSystemUiVisibility(
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+        );
+
         webView = new WebView(this);
         webView.setBackgroundColor(Color.TRANSPARENT);
+        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         setContentView(webView);
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
 
         webView.addJavascriptInterface(new LauncherBridge(), "AndroidLauncher");
         webView.loadUrl("file:///android_asset/index.html");
@@ -67,9 +86,9 @@ public class MainActivity extends Activity {
                     InputStream imageStream = getContentResolver().openInputStream(imageUri);
                     Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
                     if (selectedImage != null) {
-                        Bitmap resized = Bitmap.createScaledBitmap(selectedImage, 144, 144, true);
+                        Bitmap resized = Bitmap.createScaledBitmap(selectedImage, 128, 128, true);
                         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                        resized.compress(Bitmap.CompressFormat.PNG, 90, stream);
+                        resized.compress(Bitmap.CompressFormat.WEBP, 85, stream);
                         String base64Icon = Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP);
 
                         final String js = "saveCustomIcon('" + pendingPackage + "', '" + base64Icon + "')";
@@ -142,20 +161,27 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void shareApp(String packageName, String appName) {
+            Intent sendIntent = new Intent(Intent.ACTION_SEND);
+            sendIntent.setType("text/plain");
+            sendIntent.putExtra(Intent.EXTRA_TEXT, "Check out " + appName + ": https://play.google.com/store/apps/details?id=" + packageName);
+            startActivity(Intent.createChooser(sendIntent, "Share " + appName));
+        }
+
+        @JavascriptInterface
         public int getBatteryLevel() {
             BatteryManager bm = (BatteryManager) getSystemService(BATTERY_SERVICE);
             return bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
         }
 
         private String drawableToBase64(Drawable drawable) {
-            int width = drawable.getIntrinsicWidth() > 0 ? drawable.getIntrinsicWidth() : 108;
-            int height = drawable.getIntrinsicHeight() > 0 ? drawable.getIntrinsicHeight() : 108;
-            Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            // Optimized 96x96 WebP for zero-lag fast scrolling
+            Bitmap bitmap = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bitmap);
             drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
             drawable.draw(canvas);
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.PNG, 85, stream);
+            bitmap.compress(Bitmap.CompressFormat.WEBP, 78, stream);
             return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP);
         }
     }
