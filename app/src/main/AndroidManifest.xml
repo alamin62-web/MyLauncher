@@ -6,6 +6,7 @@
 
     <application
         android:allowBackup="true"
+        android:hardwareAccelerated="true"
         android:label="XOS 16 Launcher"
         android:theme="@android:style/Theme.Wallpaper.NoTitleBar">
 
