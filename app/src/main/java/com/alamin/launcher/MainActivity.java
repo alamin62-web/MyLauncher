@@ -16,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Base64;
+import android.view.Display;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -32,13 +33,31 @@ public class MainActivity extends Activity {
     private WebView webView;
     private String pendingPackage = "";
     private static final int PICK_IMAGE = 101;
+    private String cachedAppsJson = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Full Transparent Status Bar & Navigation Bar
+        // Force Highest Refresh Rate (144Hz / 120Hz)
         Window window = getWindow();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Display display = getDisplay();
+            if (display != null) {
+                Display.Mode[] modes = display.getSupportedModes();
+                Display.Mode highestMode = modes[0];
+                for (Display.Mode mode : modes) {
+                    if (mode.getRefreshRate() > highestMode.getRefreshRate()) {
+                        highestMode = mode;
+                    }
+                }
+                WindowManager.LayoutParams params = window.getAttributes();
+                params.preferredDisplayModeId = highestMode.getModeId();
+                window.setAttributes(params);
+            }
+        }
+
+        // Full Transparent Status Bar & Navigation Bar
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS | WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.setStatusBarColor(Color.TRANSPARENT);
@@ -52,12 +71,13 @@ public class MainActivity extends Activity {
         webView = new WebView(this);
         webView.setBackgroundColor(Color.TRANSPARENT);
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         setContentView(webView);
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
-        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
 
         webView.addJavascriptInterface(new LauncherBridge(), "AndroidLauncher");
         webView.loadUrl("file:///android_asset/index.html");
@@ -86,9 +106,9 @@ public class MainActivity extends Activity {
                     InputStream imageStream = getContentResolver().openInputStream(imageUri);
                     Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
                     if (selectedImage != null) {
-                        Bitmap resized = Bitmap.createScaledBitmap(selectedImage, 128, 128, true);
+                        Bitmap resized = Bitmap.createScaledBitmap(selectedImage, 112, 112, true);
                         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                        resized.compress(Bitmap.CompressFormat.WEBP, 85, stream);
+                        resized.compress(Bitmap.CompressFormat.WEBP, 82, stream);
                         String base64Icon = Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP);
 
                         final String js = "saveCustomIcon('" + pendingPackage + "', '" + base64Icon + "')";
@@ -104,6 +124,8 @@ public class MainActivity extends Activity {
     public class LauncherBridge {
         @JavascriptInterface
         public String getInstalledApps() {
+            if (cachedAppsJson != null) return cachedAppsJson;
+
             JSONArray appList = new JSONArray();
             PackageManager pm = getPackageManager();
             Intent intent = new Intent(Intent.ACTION_MAIN, null);
@@ -124,7 +146,8 @@ public class MainActivity extends Activity {
                     e.printStackTrace();
                 }
             }
-            return appList.toString();
+            cachedAppsJson = appList.toString();
+            return cachedAppsJson;
         }
 
         @JavascriptInterface
@@ -175,13 +198,12 @@ public class MainActivity extends Activity {
         }
 
         private String drawableToBase64(Drawable drawable) {
-            // Optimized 96x96 WebP for zero-lag fast scrolling
-            Bitmap bitmap = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888);
+            Bitmap bitmap = Bitmap.createBitmap(84, 84, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bitmap);
             drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
             drawable.draw(canvas);
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.WEBP, 78, stream);
+            bitmap.compress(Bitmap.CompressFormat.WEBP, 75, stream);
             return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP);
         }
     }
